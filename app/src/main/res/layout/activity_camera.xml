@@ -4,29 +4,27 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".view.MainActivity">
+    tools:context=".view.CameraActivity">
 
-    <LinearLayout
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:id="@+id/container">
+        <androidx.camera.view.PreviewView
+            android:id="@+id/previewView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+    </FrameLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
         <TextView
+            android:id="@+id/orientation"
             android:layout_width="match_parent"
-            android:layout_height="500dp"
-            android:id="@+id/container"
-            android:textSize="20sp"
+            android:layout_height="300dp"
             android:layout_gravity="center"
-            android:text="Heartstalker"
-            android:gravity="center">
-        </TextView>
-
-        <Button
-            android:id="@+id/enableCamera"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
             android:gravity="center"
-            android:text="Open Camera" />
+            android:textSize="100sp"
+            android:textColor="#9999ff"/>
     </LinearLayout>
-
-
 </androidx.constraintlayout.widget.ConstraintLayout>
