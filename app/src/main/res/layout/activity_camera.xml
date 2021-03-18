@@ -19,12 +19,12 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
         <TextView
-            android:id="@+id/orientation"
+            android:id="@+id/heartRate"
             android:layout_width="match_parent"
             android:layout_height="300dp"
             android:layout_gravity="center"
             android:gravity="center"
-            android:textSize="100sp"
-            android:textColor="#9999ff"/>
+            android:textSize="24sp"
+            android:textColor="@color/black"/>
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

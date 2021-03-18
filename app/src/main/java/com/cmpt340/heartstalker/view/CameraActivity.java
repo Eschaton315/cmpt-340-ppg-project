@@ -1,13 +1,26 @@
 package com.cmpt340.heartstalker.view;
 
-import android.Manifest;
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.ColorSpace;
+import android.graphics.ImageFormat;
+import android.graphics.Rect;
+import android.graphics.YuvImage;
+import android.media.Image;
+import android.os.Build;
 import android.os.Bundle;
+import android.renderscript.Allocation;
+import android.renderscript.Element;
+import android.renderscript.RenderScript;
+import android.renderscript.ScriptIntrinsicYuvToRGB;
+import android.renderscript.Type;
 import android.util.Size;
-import android.view.OrientationEventListener;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.Camera;
 import androidx.camera.core.CameraSelector;
@@ -22,6 +35,7 @@ import androidx.lifecycle.LifecycleOwner;
 import com.cmpt340.heartstalker.R;
 import com.google.common.util.concurrent.ListenableFuture;
 
+import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutionException;
 
 public class CameraActivity extends AppCompatActivity {
@@ -37,7 +51,7 @@ public class CameraActivity extends AppCompatActivity {
 
         previewView = findViewById(R.id.previewView);
         cameraProviderFuture = ProcessCameraProvider.getInstance(this);
-        textView = findViewById(R.id.orientation);
+        textView = findViewById(R.id.heartRate);
         cameraProviderFuture.addListener(() -> {
             try {
                 ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
@@ -52,24 +66,54 @@ public class CameraActivity extends AppCompatActivity {
     private void bindImageAnalysis(@NonNull ProcessCameraProvider cameraProvider) {
         // set up Image Analysis
         ImageAnalysis imageAnalysis =
-                new ImageAnalysis.Builder().setTargetResolution(new Size(500, 500))
-                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST).build();
+                new ImageAnalysis.Builder()
+                        .setTargetResolution(new Size(100, 100))
+                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                        .build();
 
         // look at preview frames
         imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), new ImageAnalysis.Analyzer() {
+            @RequiresApi(api = Build.VERSION_CODES.Q)
             @Override
             public void analyze(@NonNull ImageProxy image) {
+                //ByteBuffer a = image.getPlanes()[0].getBuffer();
+                //int[] array = new int[a.capacity()];
+                //for (int i = 0; i < array.length; i++) {
+                //    array[i] = a.get(i);
+                //}
+
+                // Get the YUV data
+                ByteBuffer yuvBytes = imageToByteBuffer(image);
+
+                // Convert YUV to RGB
+                RenderScript rs = RenderScript.create(CameraActivity.this);
+                Bitmap bitmap = Bitmap.createBitmap(image.getWidth(), image.getHeight(), Bitmap.Config.ARGB_8888);
+                Allocation allocationRgb = Allocation.createFromBitmap(rs, bitmap);
+
+                Allocation allocationYuv = Allocation.createSized(rs, Element.U8(rs), yuvBytes.array().length);
+                allocationYuv.copyFrom(yuvBytes.array());
+
+                ScriptIntrinsicYuvToRGB scriptYuvToRgb = ScriptIntrinsicYuvToRGB.create(rs, Element.U8_4(rs));
+                scriptYuvToRgb.setInput(allocationYuv);
+                scriptYuvToRgb.forEach(allocationRgb);
+
+                allocationRgb.copyTo(bitmap);
+
+                textView.setText(Float.toString(bitmap.getColor(250,250).red()));
+
+                // Release
+                bitmap.recycle();
+                allocationYuv.destroy();
+                allocationRgb.destroy();
+                rs.destroy();
                 image.close();
+
             }
         });
 
-        OrientationEventListener orientationEventListener = new OrientationEventListener(this) {
-            @Override
-            public void onOrientationChanged(int orientation) {
-                textView.setText(Integer.toString(orientation));
-            }
-        };
-        orientationEventListener.enable();
+        // update number
+        // might have to move this into analyze() so that it'll update
+        // textView.setText("heart rate");
 
         // show preview in previewView
         Preview preview = new Preview.Builder().build();
@@ -77,12 +121,83 @@ public class CameraActivity extends AppCompatActivity {
                 .requireLensFacing(CameraSelector.LENS_FACING_BACK).build();
         preview.setSurfaceProvider(previewView.createSurfaceProvider());
 
-        Camera cam = cameraProvider.bindToLifecycle((LifecycleOwner)this,
+        Camera cam = cameraProvider.bindToLifecycle((LifecycleOwner) this,
                 cameraSelector, imageAnalysis, preview);
 
         // turn on flashlight
-        if ( cam.getCameraInfo().hasFlashUnit() ) {
+        if (cam.getCameraInfo().hasFlashUnit()) {
             cam.getCameraControl().enableTorch(true); // or false
         }
     }
+
+    private float arrayAverage(int[] a) {
+        int sum = 0;
+        for (int i = 0; i < a.length; i++) {
+            int temp = a[i] & 0xff;
+            sum += temp;
+        }
+        return sum / a.length;
+    }
+
+    private ByteBuffer imageToByteBuffer(final ImageProxy image) {
+        final Rect crop = image.getCropRect();
+        final int width = crop.width();
+        final int height = crop.height();
+
+        final ImageProxy.PlaneProxy[] planes = image.getPlanes();
+        final byte[] rowData = new byte[planes[0].getRowStride()];
+        final int bufferSize = width * height * ImageFormat.getBitsPerPixel(ImageFormat.YUV_420_888) / 8;
+        final ByteBuffer output = ByteBuffer.allocateDirect(bufferSize);
+
+        int channelOffset = 0;
+        int outputStride = 0;
+
+        for (int planeIndex = 0; planeIndex < 3; planeIndex++) {
+            if (planeIndex == 0) {
+                channelOffset = 0;
+                outputStride = 1;
+            } else if (planeIndex == 1) {
+                channelOffset = width * height + 1;
+                outputStride = 2;
+            } else if (planeIndex == 2) {
+                channelOffset = width * height;
+                outputStride = 2;
+            }
+
+            final ByteBuffer buffer = planes[planeIndex].getBuffer();
+            final int rowStride = planes[planeIndex].getRowStride();
+            final int pixelStride = planes[planeIndex].getPixelStride();
+
+            final int shift = (planeIndex == 0) ? 0 : 1;
+            final int widthShifted = width >> shift;
+            final int heightShifted = height >> shift;
+
+            buffer.position(rowStride * (crop.top >> shift) + pixelStride * (crop.left >> shift));
+
+            for (int row = 0; row < heightShifted; row++) {
+                final int length;
+
+                if (pixelStride == 1 && outputStride == 1) {
+                    length = widthShifted;
+                    buffer.get(output.array(), channelOffset, length);
+                    channelOffset += length;
+                } else {
+                    length = (widthShifted - 1) * pixelStride + 1;
+                    buffer.get(rowData, 0, length);
+
+                    for (int col = 0; col < widthShifted; col++) {
+                        output.array()[channelOffset] = rowData[col * pixelStride];
+                        channelOffset += outputStride;
+                    }
+                }
+
+                if (row < heightShifted - 1) {
+                    buffer.position(buffer.position() + rowStride - length);
+                }
+            }
+        }
+
+        return output;
+    }
+
 }
