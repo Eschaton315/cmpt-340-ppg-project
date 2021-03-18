@@ -67,7 +67,7 @@ public class CameraActivity extends AppCompatActivity {
         // set up Image Analysis
         ImageAnalysis imageAnalysis =
                 new ImageAnalysis.Builder()
-                        .setTargetResolution(new Size(100, 100))
+                        .setTargetResolution(new Size(50, 50))
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .build();
 
@@ -76,12 +76,6 @@ public class CameraActivity extends AppCompatActivity {
             @RequiresApi(api = Build.VERSION_CODES.Q)
             @Override
             public void analyze(@NonNull ImageProxy image) {
-                //ByteBuffer a = image.getPlanes()[0].getBuffer();
-                //int[] array = new int[a.capacity()];
-                //for (int i = 0; i < array.length; i++) {
-                //    array[i] = a.get(i);
-                //}
-
                 // Get the YUV data
                 ByteBuffer yuvBytes = imageToByteBuffer(image);
 
@@ -99,7 +93,7 @@ public class CameraActivity extends AppCompatActivity {
 
                 allocationRgb.copyTo(bitmap);
 
-                textView.setText(Float.toString(bitmap.getColor(250,250).red()));
+                textView.setText(Float.toString(averageCalculator(bitmap)));
 
                 // Release
                 bitmap.recycle();
@@ -130,13 +124,16 @@ public class CameraActivity extends AppCompatActivity {
         }
     }
 
-    private float arrayAverage(int[] a) {
-        int sum = 0;
-        for (int i = 0; i < a.length; i++) {
-            int temp = a[i] & 0xff;
-            sum += temp;
+    // this is inefficient?? and probably is subject to subject to cancellation error
+    @RequiresApi(api = Build.VERSION_CODES.Q)
+    private float averageCalculator(Bitmap bitmap) {
+        float sum = 0;
+        for (int i = 0; i < 50; i++) {
+            for (int j = 0; j < 50; j++) {
+                sum += bitmap.getColor(i,j).red();
+            }
         }
-        return sum / a.length;
+        return sum / (bitmap.getHeight() * bitmap.getWidth());
     }
 
     private ByteBuffer imageToByteBuffer(final ImageProxy image) {
