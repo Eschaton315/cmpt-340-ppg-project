@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">Heart Stalker</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="home_screen">Home</string>
+    <string name="history_screen">History</string>
+    <string name="setting_screen">Setting</string>
+
+    <string name="HeartStalker">Heart Stalker</string>
+    <string name="OpenCamera">Open Camera</string>
 </resources>

@@ -1,4 +1,4 @@
-package com.cmpt340.heartstalker.view;
+package com.example.heartstalker;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -32,7 +32,7 @@ import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleOwner;
 
-import com.cmpt340.heartstalker.R;
+import com.example.heartstalker.R;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java.nio.ByteBuffer;

@@ -1,4 +1,4 @@
-package com.cmpt340.heartstalker;
+package com.example.heartstalker;
 
 import org.junit.Test;
 
