@@ -43,6 +43,11 @@ public class CameraActivity extends AppCompatActivity {
     private PreviewView previewView;
     private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
     private TextView textView;
+    private float[] colourData = new float[100];
+    private long[] timeData = new long[100];
+    private float highRed;
+    private float lowRed;
+    private int arrIndex = 0;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -92,6 +97,13 @@ public class CameraActivity extends AppCompatActivity {
                 scriptYuvToRgb.forEach(allocationRgb);
 
                 allocationRgb.copyTo(bitmap);
+
+                //pass time and arrayValue to function to fill array
+                int check = AddValueToTracker(System.currentTimeMillis(), averageCalculator(bitmap), timeData, colourData, arrIndex);
+                float heartRate = CalculateHeartRate(timeData, colourData);
+
+                //uncomment once it is ready to use
+                //textView.setText(CalculateHeartRate(timeData, colourData));
 
                 textView.setText(Float.toString(averageCalculator(bitmap)));
 
@@ -197,4 +209,63 @@ public class CameraActivity extends AppCompatActivity {
         return output;
     }
 
+    //function for recording averages in an array
+    //Take the high and low
+    //Normalize
+    //investigate the amount of time required to do it
+    //https://github.com/phishman3579/android-heart-rate-monitor
+    
+    private int AddValueToTracker(long time, float averageRed, long[] timeArr, float[] colourArr, int index){
+        timeArr[index] = time;
+        colourArr[index] = averageRed;
+        if(index < 99){
+            index++;
+            return 0;
+        }else{
+            index = 0;
+            return 1;
+        }
+    }
+
+
+    private float CalculateHeartRate(long[] timeArr, float[] colourArr){
+        long heartRate;
+        int[] peakArr = new int[100];
+        int peakArrIndex = 0;
+        float valueTrack = 0;
+        long time = 0;
+        boolean upTrend = false;
+
+        //Finds intervals
+        for(int i = 0; i < 100; i++){
+            if(colourArr[i] > valueTrack && upTrend == false){
+                //reached an upward trend
+                upTrend = true;
+                valueTrack = colourArr[i];
+            }else if(colourArr[i] < valueTrack && upTrend == true){
+                //peak reached
+                upTrend = false;
+                peakArr[peakArrIndex] = i;
+                peakArrIndex++;
+                valueTrack = colourArr[i];
+            }else{
+                //Either upTrend == False and colour < valueTrack
+                //or upTrend == True and colour > valueTrack
+                //No need to change other than value Track
+                valueTrack = colourArr[i];
+            }
+        }
+
+        //Get the average time between intervals
+        for(int i = 0; i < peakArrIndex - 1; i ++){
+            time = time + timeArr[i + 1] - timeArr[i];
+        }
+        time = time/(peakArrIndex - 2);
+
+        //1 over milliseconds per beat * 1000 * 60
+        heartRate = 1/(time * 1000 * 60);
+
+        return heartRate;
+    }
+  
 }
