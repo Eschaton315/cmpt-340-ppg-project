@@ -38,17 +38,22 @@ import com.google.common.util.concurrent.ListenableFuture;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutionException;
 
+import static java.lang.Math.sqrt;
+
 public class CameraActivity extends AppCompatActivity {
 
     private PreviewView previewView;
     private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
     private TextView textView;
-    private float[] colourData = new float[100];
-    private long[] timeData = new long[100];
+    private float[] colourData = new float[201];
+    private long[] timeData = new long[200];
     private float averageRed;
     private int arrIndex = 0;
+    private boolean first = true;
     private long time;
     private int check;
+    private float aveColour;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -108,16 +113,44 @@ public class CameraActivity extends AppCompatActivity {
 
                 timeData[arrIndex] = time;
                 colourData[arrIndex] = averageRed;
-                if(arrIndex < 99){
+                if(arrIndex < 199){
                     arrIndex++;
                     check = 0;
                 }else{
+
+                    //Use Normalized Data
+                    colourData = NormalizeData(colourData);
+
+                    //get average colour rating
+                    aveColour = 0;
+                    for(int i = 0; i < 200; i++){
+
+                        aveColour += colourData[i];
+                    }
+
+                    //Save average Colour
+                    aveColour = aveColour / 200;
+
+                    if(first == true){
+                        //Save as the first instance of average
+                        colourData[200] = aveColour;
+                        first = false;
+                        System.out.println("aveColour1 = " + aveColour);
+
+                    }else{
+                        //Use old average and create a new average
+                        colourData[200] = (aveColour + colourData[200]) / 2;
+                        System.out.println("aveColour2 = " + aveColour);
+
+                    }
+
                     arrIndex = 0;
                     check = 1;
                 }
 
 
                 if(check == 1){
+                    System.out.println("Enter Calculations");
                     float heartRate = CalculateHeartRate(timeData, colourData);
 
                     //uncomment once it is ready to use
@@ -241,9 +274,9 @@ public class CameraActivity extends AppCompatActivity {
 
     //method 1, uses uptrend and downtrend
     /*
-    private long CalculateHeartRate(long[] timeArr, float[] colourArr){
-        long heartRate;
-        int[] peakArr = new int[100];
+    private float CalculateHeartRate(long[] timeArr, float[] colourArr){
+        float heartRate;
+        int[] peakArr = new int[200];
         int peakArrIndex = 0;
         float valueTrack;
         long time = 0;
@@ -252,13 +285,13 @@ public class CameraActivity extends AppCompatActivity {
 
         //Finds intervals
         valueTrack = colourArr[0];
-        for(int i = 1; i < 100; i++){
+        for(int i = 1; i < 200; i++){
             if(colourArr[i] > valueTrack && upTrend == false){
                 //reached an upward trend
                 upTrend = true;
                 valueTrack = colourArr[i];
                 upTrendCounter = 1;
-            }else if(colourArr[i] < valueTrack && upTrend == true && upTrendCounter == 10){
+            }else if(colourArr[i] < valueTrack && upTrend == true && upTrendCounter < 10){
                 //peak reached
                 upTrend = false;
                 peakArr[peakArrIndex] = i - 1;
@@ -276,37 +309,47 @@ public class CameraActivity extends AppCompatActivity {
             }
         }
 
+        //System.out.println("check 0 " + peakArrIndex + " " + time);
+
         if(peakArrIndex < 2){
             return 0;
         }
         //Get the average time between intervals
-        for(int i = 0; i < peakArrIndex - 1; i ++){
+        for(int i = 0; i < peakArrIndex; i ++){
             time = time + (timeArr[i + 1] - timeArr[i]);
         }
+
+        System.out.println("check 1 " + peakArrIndex + " " + time);
+
         time = time/(peakArrIndex - 1);
 
         //bt/ms * ms/s * s/min = bt/min then inverse
 
-        heartRate = 60000/time;
+        System.out.println("check 2 " + peakArrIndex + " " + time);
 
+        float hold = time;
+        heartRate = 60000/hold;
 
+        System.out.println("check 3 " + peakArrIndex + " " + time + " " + hold);
 
         return heartRate;
     }*/
 
+    //Method 2 Get average value for heartrate measurements, then use that average to find ups and downs
+    /*
     private float CalculateHeartRate(long[] timeArr, float[] colourArr){
         float averageColour = 0;
         boolean beating = false;
         float heartRate = 0;
 
         //get average colour rating
-        for(int i = 0; i < 100; i++){
+        for(int i = 0; i < 300; i++){
             averageColour += colourArr[i];
         }
-         averageColour = averageColour / 100;
+         averageColour = averageColour / 300;
 
         //Use average to find
-        for(int i = 0; i < 100; i++){
+        for(int i = 0; i < 300; i++){
             if(averageColour > colourArr[i] && beating == false){
                 beating = true;
                 heartRate++;
@@ -316,7 +359,7 @@ public class CameraActivity extends AppCompatActivity {
         }
 
         //Get the time interval (in ms)
-        long timeTotal = timeArr[99] - timeArr[0];
+        long timeTotal = timeArr[299] - timeArr[0];
         System.out.println("time total " + timeTotal + "  HeartRate " + heartRate);
 
         //in beats/ms
@@ -330,5 +373,127 @@ public class CameraActivity extends AppCompatActivity {
 
         return heartRate;
     }
-  
+  */
+
+    //Method 3: Mix of 1 and 2
+    private float CalculateHeartRate(long[] timeArr, float[] colourArr){
+        float averageColour = colourArr[200];
+        boolean beating = false;
+        float heartRate = 0;
+        long[] timeTrack = new long[30];
+        int loopStart = 0;
+        int prevPeak = -1;
+        int currentPeak = -1;
+        float peakValue = 0;
+        long timeTotal = 0;
+
+        //debug
+        for(int i = 0; i < 100; i++){
+            System.out.println("colourArr val = " + colourArr[i]);
+        }
+
+        //Use average to find heartbeats
+        //find the peak in the sample and use it to discover the peak of the beat
+        for(int i = 0; i < 200; i++){
+            //value > average, and was not beating
+            if(averageColour < colourArr[i] && beating == false){
+                beating = true;
+                loopStart = i;
+                heartRate++;
+
+            //value < average and it was beating
+            }else if(averageColour > colourArr[i] && beating == true){
+                beating = false;
+
+                //Find Peak and remember
+                for (int j = loopStart; j <= i; j++){
+                    if(peakValue < colourArr[j]){
+                        peakValue = colourArr[j];
+                        currentPeak = j;
+                    }
+                }
+
+                if(prevPeak != -1){
+                    timeTrack[(int) heartRate] = timeArr[currentPeak] - timeArr[prevPeak];
+                }
+
+                prevPeak = currentPeak;
+                peakValue = 0;
+            }
+        }
+
+        //Get the time interval (in ms)
+        //check if the recording ended mid beat
+        if(beating == true){
+            heartRate = heartRate - 1;
+        }
+        if(averageColour > colourArr[0]){
+
+            for(int i = 1; i < heartRate; i++){
+                timeTotal = timeTotal + timeTrack[i];
+            }
+            heartRate = heartRate - 1;
+
+        }else{
+
+            for(int i = 0; i < heartRate; i++){
+                timeTotal = timeTotal + timeTrack[i];
+            }
+        }
+
+
+        System.out.println("time total " + timeTotal + "  HeartRate " + heartRate);
+
+        //in beats/ms
+        heartRate = heartRate/timeTotal;
+
+        System.out.println("heartRate" + heartRate);
+
+        //conversion to min
+        heartRate = heartRate * 60 * 1000;
+
+        System.out.println("heartRate" + heartRate);
+
+        //Irregular Value, should not be returned
+        /*
+        if(heartRate > 130 || heartRate < 40){
+            return 666;
+        }*/
+
+        return heartRate;
+    }
+
+
+    private float[] NormalizeData(float[] colourArr){
+
+        //Step 1: normalize the data Given
+        float colourMean = 0;
+        float[] colourStdCalc = new float[201];
+        float[] normColourArr = new float[201];
+        float colourStd;
+
+        //Find Standard Deviation of colour
+        for(int i = 0; i < 200; i++){
+            colourMean =+ colourArr[i];
+        }
+        colourMean = colourMean/200;
+
+        for(int i = 0; i < 200; i++){
+            colourStdCalc[i] = (colourArr[i] - colourMean) * (colourArr[i] - colourMean);
+        }
+        float colourMean2 = 0;
+        for(int i = 0; i < 200; i++){
+            colourMean2 =+ colourStdCalc[i];
+        }
+        colourMean2 = colourMean2/200;
+
+        colourStd = (float) sqrt((double) colourMean2);
+
+        for(int i = 0; i < 200; i++){
+            normColourArr[i] = (colourArr[i] - colourMean)/colourStd;
+        }
+        normColourArr[200] = colourArr[200];
+        return normColourArr;
+    }
+
 }
