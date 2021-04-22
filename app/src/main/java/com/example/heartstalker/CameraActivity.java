@@ -35,7 +35,14 @@ import androidx.lifecycle.LifecycleOwner;
 import com.example.heartstalker.R;
 import com.google.common.util.concurrent.ListenableFuture;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
+import java.sql.SQLOutput;
 import java.util.concurrent.ExecutionException;
 
 import static java.lang.Math.sqrt;
@@ -45,6 +52,8 @@ public class CameraActivity extends AppCompatActivity {
     private PreviewView previewView;
     private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
     private TextView textView;
+    private TextView textView2;
+    private TextView textView3;
     private float[] colourData = new float[201];
     private long[] timeData = new long[200];
     private float averageRed;
@@ -60,9 +69,12 @@ public class CameraActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
 
+
         previewView = findViewById(R.id.previewView);
         cameraProviderFuture = ProcessCameraProvider.getInstance(this);
         textView = findViewById(R.id.heartRate);
+        textView2 = findViewById(R.id.intensity);
+        textView3 = findViewById(R.id.calories);
         cameraProviderFuture.addListener(() -> {
             try {
                 ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
@@ -152,10 +164,26 @@ public class CameraActivity extends AppCompatActivity {
                 if(check == 1){
                     System.out.println("Enter Calculations");
                     float heartRate = CalculateHeartRate(timeData, colourData);
-
+                    String heartRate_Str = String.format("%.0f",heartRate);
+                    heartRate_Str = heartRate_Str.concat("\nBpm");
+                    saveHeartRate(heartRate);
                     //uncomment once it is ready to use
 
-                    textView.setText(Float.toString(heartRate));
+                    textView.setText(heartRate_Str);
+
+                    String HRvalStr = getHeartRateVal();
+                    System.out.println("saved str ="+HRvalStr);
+
+                    String intensity = CalculateExerciseIntensity(Float.parseFloat(HRvalStr));
+
+                   String calorie = CaloriesBurn(Float.parseFloat(HRvalStr));
+
+                    System.out.println("saved str cal="+calorie);
+
+                    textView2.setText(intensity);
+                    textView3.setText("Calories Burned:\n**assume 2 hours**\n"+calorie);
+
+
                     check = 0;
                 }
 
@@ -496,4 +524,91 @@ public class CameraActivity extends AppCompatActivity {
         return normColourArr;
     }
 
-}
+    private String CalculateExerciseIntensity(float heartRate){
+        // also needs age that will be within internal storage.
+        float age = 21;
+        float maxHR = (float) (206.9-(0.67*age));
+        float intensityPercent= 100*(heartRate/maxHR);
+        String intensityPercentStr = String.format("Intensity\n%.0f",intensityPercent);
+        intensityPercentStr = intensityPercentStr.concat("%");
+
+        return intensityPercentStr;
+    }
+
+    private String CaloriesBurn(float heartRate){
+        //requires gender,weight,and exercise duration
+        //weight in kg
+        //time in hours
+        //genders will just be 0=male/1=female
+        //if bpm is too low, it will just say 0
+        int gender = 0;
+        int age =21;
+        float ageFloat = (float) age;
+        float weight = 54;
+        float time = 2;
+        float calBurn=-1;
+        String calBurnStr;
+
+        if(gender==0){
+           calBurn = (float) (((-55.0969+(0.6309*heartRate)+(0.1988*weight)+(0.2017*ageFloat))/4.184)*60*time);
+        }
+        if(gender==1) {
+            calBurn= (float) (((-20.4022+(0.4472*heartRate)-(0.1263*weight)+(0.074*age))/4.184)*60*time);
+        }
+
+        if(calBurn<=-1){
+            return "0";
+        }
+
+        calBurnStr=String.format("%.0f",calBurn);
+
+        return calBurnStr;
+
+    }
+
+
+    //save heart rate to a internal txt file so it can be pulled from other activities
+    public void saveHeartRate(float heartRate) {
+        String heartRateStr = String.format("%.2f", heartRate);
+        try {
+            FileOutputStream fileOutputStream = openFileOutput("Heart Rate.txt", MODE_PRIVATE);
+            fileOutputStream.write(heartRateStr.getBytes());
+            System.out.println("saving: "+heartRateStr);
+            fileOutputStream.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public String getHeartRateVal(){
+        String HRval;
+        try{
+            FileInputStream fileInputStream = openFileInput("Heart Rate.txt");
+            InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream);
+
+            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+            StringBuffer stringBuffer = new StringBuffer();
+
+            while((HRval = bufferedReader.readLine())!=null){
+                stringBuffer.append(HRval);
+            }
+            return (stringBuffer.toString());
+        }catch(FileNotFoundException e) {
+            e.printStackTrace();
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+
+        return (null);
+    }
+
+
+
+
+    }
+
+
+

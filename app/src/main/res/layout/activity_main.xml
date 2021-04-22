@@ -7,23 +7,25 @@
     android:background="@drawable/backgroud"
     tools:context=".MainActivity">
 
-    <TextView
-        android:id="@+id/titleTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/HeartStalker"
-        android:textSize="28dp"
-        android:textStyle="bold"
-        android:textColor="@color/black"
-        android:layout_margin="16dp"
-        />
-
     <FrameLayout
         android:id="@+id/fl_wrapper"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/bottom_navigation"
         >
+
+        <TextView
+            android:id="@+id/titleTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
+            android:text="@string/HeartStalker"
+            android:textColor="@color/black"
+            android:textSize="28dp"
+            android:textStyle="bold" />
 
         <Button
             android:id="@+id/enableCamera"
@@ -32,6 +34,7 @@
             android:layout_gravity="center"
             android:text="@string/OpenCamera"
             />
+
     </FrameLayout>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
