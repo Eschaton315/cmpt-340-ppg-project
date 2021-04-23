@@ -228,7 +228,7 @@ public class CameraActivity extends AppCompatActivity {
                 sum += bitmap.getColor(i,j).red();
             }
         }
-        return sum / (bitmap.getHeight() * bitmap.getWidth());
+        return sum / (50 * 50);
     }
 
     private ByteBuffer imageToByteBuffer(final ImageProxy image) {
