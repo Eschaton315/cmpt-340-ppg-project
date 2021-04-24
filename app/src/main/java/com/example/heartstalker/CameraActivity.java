@@ -353,23 +353,11 @@ public class CameraActivity extends AppCompatActivity {
         }
 
 
-        System.out.println("time total " + timeTotal + "  HeartRate " + heartRate);
-
         //in beats/ms
         heartRate = heartRate/timeTotal;
 
-        System.out.println("heartRate" + heartRate);
-
         //conversion to min
         heartRate = heartRate * 60 * 1000;
-
-        System.out.println("heartRate" + heartRate);
-
-        //Irregular Value, should not be returned
-        /*
-        if(heartRate > 130 || heartRate < 40){
-            return 666;
-        }*/
 
         return heartRate;
     }
