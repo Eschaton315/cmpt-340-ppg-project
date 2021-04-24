@@ -303,11 +303,6 @@ public class CameraActivity extends AppCompatActivity {
         float peakValue = 0;
         long timeTotal = 0;
 
-        //debug
-        for(int i = 0; i < 100; i++){
-            System.out.println("colourArr val = " + colourArr[i]);
-        }
-
         //Use average to find heartbeats
         //find the peak in the sample and use it to discover the peak of the beat
         for(int i = 0; i < 200; i++){
