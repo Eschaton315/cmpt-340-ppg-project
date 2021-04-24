@@ -377,18 +377,19 @@ public class CameraActivity extends AppCompatActivity {
 
     private float[] NormalizeData(float[] colourArr){
 
-        //Step 1: normalize the data Given
+
         float colourMean = 0;
         float[] colourStdCalc = new float[201];
         float[] normColourArr = new float[201];
         float colourStd;
 
-        //Step 2: Find Standard Deviation of colour
+        //Step 1: Get Mean for the data given
         for(int i = 0; i < 200; i++){
             colourMean =+ colourArr[i];
         }
         colourMean = colourMean/200;
 
+        //Step 2: Find Standard Deviation of colour
         for(int i = 0; i < 200; i++){
             colourStdCalc[i] = (colourArr[i] - colourMean) * (colourArr[i] - colourMean);
         }
