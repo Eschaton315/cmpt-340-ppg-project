@@ -28,10 +28,10 @@ public class PopUpActivity extends AppCompatActivity {
     private float  time=0;
     private float heartRate;
     private float MaxHR=200;
-    private float age;
+    private float age=20;
     private float weight;
-    private String mhrStr;
-    private String weightStr;
+    private String mhrStr="200";
+    private String weightStr="70";
     private String intensity;
     private String calorie;
 
@@ -65,7 +65,15 @@ public class PopUpActivity extends AppCompatActivity {
                     }
 
                     if(mhrStr.equals("")||weightStr.equals("")){
-                        textView.setText("Set age or weight in \"settings\" first");
+                          mhrStr="200";
+                          weightStr="70";
+                        MaxHR = Float.parseFloat(mhrStr);
+                        weight = Float.parseFloat(weightStr);
+                        intensity = CalculateExerciseIntensity(heartRate,MaxHR);
+                        calorie = CaloriesBurn(heartRate,weight,time,age,gender);
+
+                        textView.setText(intensity);
+                        textView2.setText("Calories Burned: " + calorie);
                     }else{
                         MaxHR = Float.parseFloat(mhrStr);
                         age = Float.parseFloat(getAge());

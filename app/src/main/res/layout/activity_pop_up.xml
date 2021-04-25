@@ -27,21 +27,23 @@
 
     <TextView
         android:id="@+id/textQuestion"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
+        android:layout_width="288dp"
+        android:layout_height="85dp"
         android:text="@string/how_long_were_you_exercising_n_in_hours"
         android:textAlignment="center"
         android:textColor="@color/white"
+        android:textSize="20sp"
         app:layout_constraintBottom_toTopOf="@+id/editTimeInput"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.496"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/titleTextView" />
 
     <TextView
         android:id="@+id/textQuestion2"
-        android:layout_width="327dp"
-        android:layout_height="32dp"
-        android:text="@string/make_sure_you_enter_your_age_in_settings_first"
+        android:layout_width="371dp"
+        android:layout_height="33dp"
+        android:text='(Set information in "Settings" for more accureate results) '
         android:textAlignment="center"
         android:textColor="@color/white"
         app:layout_constraintBottom_toTopOf="@+id/editTimeInput"
