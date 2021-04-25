@@ -41,11 +41,12 @@
 
     <TextView
         android:id="@+id/textQuestion2"
-        android:layout_width="371dp"
-        android:layout_height="33dp"
+        android:layout_width="328dp"
+        android:layout_height="39dp"
         android:text='(Set information in "Settings" for more accureate results) '
         android:textAlignment="center"
         android:textColor="@color/white"
+        android:textSize="12sp"
         app:layout_constraintBottom_toTopOf="@+id/editTimeInput"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.512"

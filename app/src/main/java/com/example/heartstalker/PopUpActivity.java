@@ -24,7 +24,7 @@ public class PopUpActivity extends AppCompatActivity {
     private Button backBtn;
     private EditText timeIn;
     private int gender =0;
-    private String genderStr;
+    private String genderStr="0";
     private float  time=0;
     private float heartRate;
     private float MaxHR=200;
@@ -60,36 +60,29 @@ public class PopUpActivity extends AppCompatActivity {
                     weightStr = getWeight();
                     genderStr = getGender();
 
-                    if(!genderStr.equals("")){
+                    System.out.println("Gender = "+genderStr);
+
+                    if(genderStr!=null){
+                        System.out.println("check");
                         gender = Integer.parseInt(genderStr);
                     }
 
-                    if(mhrStr.equals("")||weightStr.equals("")){
+                    if(mhrStr==null||weightStr==null){
                           mhrStr="200";
                           weightStr="70";
                         MaxHR = Float.parseFloat(mhrStr);
-                        weight = Float.parseFloat(weightStr);
-                        intensity = CalculateExerciseIntensity(heartRate,MaxHR);
-                        calorie = CaloriesBurn(heartRate,weight,time,age,gender);
 
-                        textView.setText(intensity);
-                        textView2.setText("Calories Burned: " + calorie);
                     }else{
                         MaxHR = Float.parseFloat(mhrStr);
                         age = Float.parseFloat(getAge());
-                        weight = Float.parseFloat(weightStr);
-
-
-
-                        intensity = CalculateExerciseIntensity(heartRate,MaxHR);
-                        calorie = CaloriesBurn(heartRate,weight,time,age,gender);
-
-                        textView.setText(intensity);
-                        textView2.setText("Calories Burned: " + calorie);
 
 
                     }
-
+                    weight = Float.parseFloat(weightStr);
+                    intensity = CalculateExerciseIntensity(heartRate,MaxHR);
+                    calorie = CaloriesBurn(heartRate,weight,time,age,gender);
+                    textView.setText(intensity);
+                    textView2.setText("Calories Burned: " + calorie);
 
 
                 }
