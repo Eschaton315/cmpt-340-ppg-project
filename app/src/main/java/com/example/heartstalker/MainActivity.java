@@ -24,6 +24,8 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
     private static final String[] CAMERA_PERMISSION = new String[]{Manifest.permission.CAMERA};
     private static final int CAMERA_REQUEST_CODE = 10;
 
+    int age;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,8 +43,8 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
             }
         });
 
-
-
+        Intent i = getIntent();
+        age = i.getIntExtra("Age", 35);
     }
 
     private boolean hasCameraPermission() {
@@ -65,14 +67,6 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         startActivity(intent);
     }
 
-
-    private void makeCurrentFragment(Fragment fragment) {
-        FragmentManager fm = getSupportFragmentManager();
-        FragmentTransaction transaction = fm.beginTransaction();
-        transaction.replace(R.id.fl_wrapper, fragment);
-        transaction.commit();
-    }
-
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
@@ -82,6 +76,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
             case R.id.ic_settings:
                 Intent intent = new Intent(this, SettingActivity.class);
                 startActivity(intent);
+                finish();
         }
         return false;
     }
