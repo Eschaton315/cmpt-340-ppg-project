@@ -11,32 +11,15 @@ import androidx.fragment.app.FragmentTransaction;
 import android.os.Bundle;
 import android.view.MenuItem;
 
-import com.example.heartstalker.Fragments.HistoryFragment;
-import com.example.heartstalker.Fragments.HomeFragment;
-import com.example.heartstalker.Fragments.SettingFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
-
-import com.example.heartstalker.R;
-
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
 
 public class MainActivity extends AppCompatActivity implements BottomNavigationView.OnNavigationItemSelectedListener{
     BottomNavigationView bottomNavigationView;
-    Fragment homeFragment = new HomeFragment();
-    Fragment historyFragment = new HistoryFragment();
-    Fragment settingFragment = new SettingFragment();
 
     private static final String[] CAMERA_PERMISSION = new String[]{Manifest.permission.CAMERA};
     private static final int CAMERA_REQUEST_CODE = 10;
@@ -45,8 +28,6 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        makeCurrentFragment(homeFragment);
 
         bottomNavigationView = findViewById(R.id.bottom_navigation);
         bottomNavigationView.setOnNavigationItemSelectedListener(this);
@@ -96,15 +77,11 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
         switch (id){
-            case R.id.ic_history:
-                makeCurrentFragment(historyFragment);
-                return true;
             case R.id.ic_home:
-                makeCurrentFragment(homeFragment);
                 return true;
             case R.id.ic_settings:
-                makeCurrentFragment(settingFragment);
-                return true;
+                Intent intent = new Intent(this, SettingActivity.class);
+                startActivity(intent);
         }
         return false;
     }
