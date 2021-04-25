@@ -9,4 +9,13 @@
 
     <string name="HeartStalker">Heart Stalker</string>
     <string name="OpenCamera">Open Camera</string>
+    <string name="were_you_exercising">Were you Exercising?</string>
+    <string name="submit">Submit</string>
+    <string name="how_long_were_you_exercising_n_in_hours">How long were you exercising? (in hours)</string>
+    <string name="enter_your_weight_below_kg">Enter your weight below (kg)</string>
+    <string name="enter_your_age_below">Enter your age below</string>
+    <string name="back">back</string>
+    <string name="make_sure_you_enter_your_age_in_settings_first">*Make sure you enter your age in settings first*</string>
+    <string name="gender">Gender</string>
+    <string name="male">Male</string>
 </resources>

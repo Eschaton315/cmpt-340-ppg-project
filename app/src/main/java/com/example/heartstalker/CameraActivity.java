@@ -1,6 +1,7 @@
 package com.example.heartstalker;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ColorSpace;
@@ -16,6 +17,10 @@ import android.renderscript.RenderScript;
 import android.renderscript.ScriptIntrinsicYuvToRGB;
 import android.renderscript.Type;
 import android.util.Size;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -52,8 +57,8 @@ public class CameraActivity extends AppCompatActivity {
     private PreviewView previewView;
     private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
     private TextView textView;
-    private TextView textView2;
-    private TextView textView3;
+    private ImageView progressBar;
+    private Button exerciseButton;
     private float[] colourData = new float[201];
     private long[] timeData = new long[200];
     private float averageRed;
@@ -62,6 +67,7 @@ public class CameraActivity extends AppCompatActivity {
     private long time;
     private int check;
     private float aveColour;
+    private float maxHR=200;
 
 
     @Override
@@ -73,8 +79,10 @@ public class CameraActivity extends AppCompatActivity {
         previewView = findViewById(R.id.previewView);
         cameraProviderFuture = ProcessCameraProvider.getInstance(this);
         textView = findViewById(R.id.heartRate);
-        textView2 = findViewById(R.id.intensity);
-        textView3 = findViewById(R.id.calories);
+        progressBar = findViewById(R.id.progressBar);
+        exerciseButton = findViewById(R.id.exercise);
+        exerciseButton.setVisibility(View.GONE);
+        progressBar.setVisibility(View.GONE);
         cameraProviderFuture.addListener(() -> {
             try {
                 ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
@@ -83,6 +91,17 @@ public class CameraActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }, ContextCompat.getMainExecutor(this));
+
+
+        exerciseButton.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                Intent exerciseIntent = new Intent(CameraActivity.this, PopUpActivity.class);
+                startActivity(exerciseIntent);
+            }
+        });
+
+
 
     }
 
@@ -123,13 +142,20 @@ public class CameraActivity extends AppCompatActivity {
                 colourData[arrIndex] = averageRed;
                 //slots 0-199 are used for data,
                 //slot 200 is to store average over every single run of the algorithm
+
                 if(arrIndex < 199){
                     arrIndex++;
+                    if(arrIndex==150){
+                        progressBar.setVisibility(View.VISIBLE);
+                    }
                     check = 0;
                 }else{
 
                     //Use Normalized Data
+
                     colourData = NormalizeData(colourData);
+
+
 
                     //get average colour rating
                     aveColour = 0;
@@ -163,24 +189,24 @@ public class CameraActivity extends AppCompatActivity {
                     //calculate once all slots are filled
                     System.out.println("Enter Calculations");
                     float heartRate = CalculateHeartRate(timeData, colourData);
-                    String heartRate_Str = String.format("%.0f",heartRate);
-                    heartRate_Str = heartRate_Str.concat("\nBpm");
-                    saveHeartRate(heartRate);
 
-                    textView.setText(heartRate_Str);
 
-                    String HRvalStr = getHeartRateVal();
-                    System.out.println("saved str ="+HRvalStr);
+                    //get max HR
+                    //Any heart rate that are considered irregular will be omitted i.e. anything over max heart rate or 40bpm. maxHR default is 200.
+                    if(heartRate<=maxHR&&heartRate>=40) {
+                        String heartRate_Str = String.format("%.0f", heartRate);
+                        heartRate_Str = heartRate_Str.concat("\nBpm");
+                        saveHeartRate(heartRate);
+                       progressBar.setVisibility(View.GONE);
+                        textView.setText(heartRate_Str);
 
-                    String intensity = CalculateExerciseIntensity(Float.parseFloat(HRvalStr));
+                        //make button visible
+                        if(exerciseButton.getVisibility()==View.GONE){
+                            exerciseButton.setVisibility(View.VISIBLE);
+                        }
 
-                   String calorie = CaloriesBurn(Float.parseFloat(HRvalStr));
 
-                    System.out.println("saved str cal="+calorie);
-
-                    textView2.setText(intensity);
-                    textView3.setText("Calories Burned:\n**assume 2 hours**\n"+calorie);
-
+                    }
 
                     check = 0;
                 }
@@ -397,47 +423,6 @@ public class CameraActivity extends AppCompatActivity {
         return normColourArr;
     }
 
-    private String CalculateExerciseIntensity(float heartRate){
-        // also needs age that will be within internal storage.
-        float age = 21;
-        float maxHR = (float) (206.9-(0.67*age));
-        float intensityPercent= 100*(heartRate/maxHR);
-        String intensityPercentStr = String.format("Intensity\n%.0f",intensityPercent);
-        intensityPercentStr = intensityPercentStr.concat("%");
-
-        return intensityPercentStr;
-    }
-
-    private String CaloriesBurn(float heartRate){
-        //requires gender,weight,and exercise duration
-        //weight in kg
-        //time in hours
-        //genders will just be 0=male/1=female
-        //if bpm is too low, it will just say 0
-        int gender = 0;
-        int age =21;
-        float ageFloat = (float) age;
-        float weight = 54;
-        float time = 2;
-        float calBurn=-1;
-        String calBurnStr;
-
-        if(gender==0){
-           calBurn = (float) (((-55.0969+(0.6309*heartRate)+(0.1988*weight)+(0.2017*ageFloat))/4.184)*60*time);
-        }
-        if(gender==1) {
-            calBurn= (float) (((-20.4022+(0.4472*heartRate)-(0.1263*weight)+(0.074*age))/4.184)*60*time);
-        }
-
-        if(calBurn<=-1){
-            return "0";
-        }
-
-        calBurnStr=String.format("%.0f",calBurn);
-
-        return calBurnStr;
-
-    }
 
 
     //save heart rate to a internal txt file so it can be pulled from other activities
@@ -455,30 +440,6 @@ public class CameraActivity extends AppCompatActivity {
         }
 
     }
-
-    public String getHeartRateVal(){
-        String HRval;
-        try{
-            FileInputStream fileInputStream = openFileInput("Heart Rate.txt");
-            InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream);
-
-            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-            StringBuffer stringBuffer = new StringBuffer();
-
-            while((HRval = bufferedReader.readLine())!=null){
-                stringBuffer.append(HRval);
-            }
-            return (stringBuffer.toString());
-        }catch(FileNotFoundException e) {
-            e.printStackTrace();
-        }catch (IOException e){
-            e.printStackTrace();
-        }
-
-        return (null);
-    }
-
-
 
 
     }

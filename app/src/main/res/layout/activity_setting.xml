@@ -24,7 +24,7 @@
             android:layout_marginBottom="16dp"
             android:text="@string/HeartStalker"
             android:textColor="@color/black"
-            android:textSize="28dp"
+            android:textSize="28sp"
             android:textStyle="bold" />
 
     </FrameLayout>
@@ -38,27 +38,58 @@
         android:layout_margin="100dp">
 
         <TextView
-            android:id="@+id/textView2"
+            android:id="@+id/textQuestion"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="50dp"
-            android:text="Enter your age below"
+            android:text="@string/enter_your_age_below"
             android:textColor="@color/white"/>
 
         <EditText
-            android:id="@+id/editTextAgeInput"
+            android:id="@+id/editTimeInput"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:ems="10"
             android:inputType="numberDecimal"
             android:textColor="@color/white"
-            />
+            android:importantForAutofill="no" />
 
-        <Button
-            android:id="@+id/submitButton"
+        <TextView
+            android:id="@+id/textQuestion3"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Submit" />
+            android:layout_marginTop="50dp"
+            android:text="@string/enter_your_weight_below_kg"
+            android:textColor="@color/white" />
+
+        <EditText
+            android:id="@+id/editWeightInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="numberDecimal"
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/textQuestion4"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/gender"
+            android:textColor="#FFFFFF" />
+
+        <Spinner
+            android:id="@+id/editGender"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+
+
+        <Button
+            android:id="@+id/submitButtonExercise"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="40dp"
+            android:text="@string/submit" />
     </LinearLayout>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
