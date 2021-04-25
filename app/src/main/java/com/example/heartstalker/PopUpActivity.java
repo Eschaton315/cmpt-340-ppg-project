@@ -92,7 +92,7 @@ public class PopUpActivity extends AppCompatActivity {
         backBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(PopUpActivity.this, CameraActivity.class));
+                startActivity(new Intent(PopUpActivity.this, MainActivity.class));
             }
 
         });
