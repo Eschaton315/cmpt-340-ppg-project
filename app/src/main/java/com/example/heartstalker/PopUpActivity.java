@@ -51,6 +51,7 @@ public class PopUpActivity extends AppCompatActivity {
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //after submitting values check if anything was inputted
                 if(timeIn.getText().toString().equals("")) {
                     time = 0;
                     textView.setText("No value inputted");
@@ -60,36 +61,30 @@ public class PopUpActivity extends AppCompatActivity {
                     weightStr = getWeight();
                     genderStr = getGender();
 
-                    System.out.println("Gender = "+genderStr);
-
                     if(genderStr!=null){
-                        System.out.println("check");
                         gender = Integer.parseInt(genderStr);
                     }
-
+                    //check if the user added info to the "settings" and if not, use default values
                     if(mhrStr==null||weightStr==null){
                           mhrStr="200";
                           weightStr="70";
                         MaxHR = Float.parseFloat(mhrStr);
-
                     }else{
                         MaxHR = Float.parseFloat(mhrStr);
                         age = Float.parseFloat(getAge());
-
-
                     }
                     weight = Float.parseFloat(weightStr);
                     intensity = CalculateExerciseIntensity(heartRate,MaxHR);
                     calorie = CaloriesBurn(heartRate,weight,time,age,gender);
                     textView.setText(intensity);
                     textView2.setText("Calories Burned: " + calorie);
-
-
                 }
 
 
             }
         });
+
+        //back button takes us back to mainActivity
         backBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -100,6 +95,7 @@ public class PopUpActivity extends AppCompatActivity {
 
     }
 
+    //functions to get certain values saved from other activities
     public String getHeartRateVal(){
         String HRval;
         try{
@@ -211,7 +207,7 @@ public class PopUpActivity extends AppCompatActivity {
         return (null);
     }
 
-
+//functions for calculation of exercise intensity
     private String CalculateExerciseIntensity(float heartRate,float maxHR){
 
         float intensityPercent= 100*(heartRate/maxHR);
@@ -223,7 +219,6 @@ public class PopUpActivity extends AppCompatActivity {
 
 
     private String CaloriesBurn(float heartRate,float weight,float time,float age,int gender){
-        //requires gender,weight,and exercise duration
         //weight in kg
         //time in hours
         //genders will just be 0=male/1=female

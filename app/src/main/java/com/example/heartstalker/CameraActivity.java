@@ -197,6 +197,7 @@ public class CameraActivity extends AppCompatActivity {
                         String heartRate_Str = String.format("%.0f", heartRate);
                         heartRate_Str = heartRate_Str.concat("\nBpm");
                         saveHeartRate(heartRate);
+                        //save heart rate value for other activities
                        progressBar.setVisibility(View.GONE);
                         textView.setText(heartRate_Str);
 
@@ -210,8 +211,6 @@ public class CameraActivity extends AppCompatActivity {
 
                     check = 0;
                 }
-
-
                 //textView.setText(Float.toString(averageCalculator(bitmap)));
 
                 // Release
@@ -243,7 +242,6 @@ public class CameraActivity extends AppCompatActivity {
         }
     }
 
-    // this is inefficient?? and probably is subject to subject to cancellation error
     @RequiresApi(api = Build.VERSION_CODES.Q)
     private float averageCalculator(Bitmap bitmap) {
         float sum = 0;
